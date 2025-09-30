@@ -36,7 +36,7 @@ class _SettingsPageState extends State<SettingsPage> {
     secretKeyController.text = s3SecretKey ?? '';
     final navigator = Navigator.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: const Text('Settings', style: TextStyle(color: Colors.white))),
       body: Form(
         key: _formKey,
         child: Padding(
@@ -87,7 +87,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
               ),
               const SizedBox(height: 15),
-              ElevatedButton(
+            //  MaterialButton(onPressed: onPressed)
+              MaterialButton(
+                 height: 50,
+                 minWidth: 150,
+                 color: Colors.deepPurpleAccent.shade700,
+                 textColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

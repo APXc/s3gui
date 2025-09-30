@@ -29,11 +29,12 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Buckets'),
+        title: const Text('Buckets', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',
+            color: Colors.white,
             onPressed: () {
               Navigator.push(
                 context,
