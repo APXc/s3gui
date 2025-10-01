@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:s3gui/pages/settings.dart';
+import 'package:s3gui/pages/addBucket.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:s3gui/pages/objects.dart';
 import 'package:s3gui/client.dart';
@@ -31,6 +32,20 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Buckets', style: TextStyle(color: Colors.white)),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.plus_one),
+            tooltip: 'New Bucket',
+            color: Colors.white,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      AddBucket(sharedPreferences: widget.sharedPreferences),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Settings',

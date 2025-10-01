@@ -103,6 +103,70 @@ mixin _$S3 on S3Base, Store {
         .run(() => super.deleteDirectory(bucket, prefix, key));
   }
 
+  late final _$downloadFileAsyncAction =
+      AsyncAction('S3Base.downloadFile', context: context);
+
+  @override
+  Future<String> downloadFile(String bucket, String key) {
+    return _$downloadFileAsyncAction.run(() => super.downloadFile(bucket, key));
+  }
+
+  late final _$copyObjectAsyncAction =
+      AsyncAction('S3Base.copyObject', context: context);
+
+  @override
+  Future<void> copyObject(String sourceBucket, String sourceKey,
+      String destBucket, String destKey) {
+    return _$copyObjectAsyncAction.run(
+        () => super.copyObject(sourceBucket, sourceKey, destBucket, destKey));
+  }
+
+  late final _$moveObjectAsyncAction =
+      AsyncAction('S3Base.moveObject', context: context);
+
+  @override
+  Future<void> moveObject(String sourceBucket, String sourceKey,
+      String destBucket, String destKey) {
+    return _$moveObjectAsyncAction.run(
+        () => super.moveObject(sourceBucket, sourceKey, destBucket, destKey));
+  }
+
+  late final _$createBucketAsyncAction =
+      AsyncAction('S3Base.createBucket', context: context);
+
+  @override
+  Future<void> createBucket(String bucket) {
+    return _$createBucketAsyncAction.run(() => super.createBucket(bucket));
+  }
+
+  late final _$deleteBucketAsyncAction =
+      AsyncAction('S3Base.deleteBucket', context: context);
+
+  @override
+  Future<void> deleteBucket(String bucket) {
+    return _$deleteBucketAsyncAction.run(() => super.deleteBucket(bucket));
+  }
+
+  late final _$searchObjectsAsyncAction =
+      AsyncAction('S3Base.searchObjects', context: context);
+
+  @override
+  Future<List<Object>> searchObjects(String bucket,
+      {String? prefix,
+      String? nameContains,
+      int? minSize,
+      int? maxSize,
+      DateTime? modifiedAfter,
+      DateTime? modifiedBefore}) {
+    return _$searchObjectsAsyncAction.run(() => super.searchObjects(bucket,
+        prefix: prefix,
+        nameContains: nameContains,
+        minSize: minSize,
+        maxSize: maxSize,
+        modifiedAfter: modifiedAfter,
+        modifiedBefore: modifiedBefore));
+  }
+
   @override
   String toString() {
     return '''

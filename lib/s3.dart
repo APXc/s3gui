@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:minio/minio.dart';
 import 'package:minio/models.dart';
 import 'package:mobx/mobx.dart';
 import 'package:s3gui/client.dart';
@@ -138,12 +139,17 @@ abstract class S3Base with Store {
   // --- CREAZIONE ED ELIMINAZIONE BUCKET ---
   // NOTA: Il client Minio Dart non supporta la creazione/eliminazione bucket direttamente.
   // Questi metodi sono stub/documentazione per futura estensione o backend custom.
-  // Future<void> createBucket(String bucket) async {
-  //   // Implementazione custom necessaria
-  // }
-  // Future<void> deleteBucket(String bucket) async {
-  //   // Implementazione custom necessaria
-  // }
+   @action
+  Future<void> createBucket(String bucket) async {
+    MinioInvalidBucketNameError.check(bucket);
+    await Client().c.makeBucket(bucket);
+  }
+
+  @action
+  Future<void> deleteBucket(String bucket) async {
+    await Client().c.removeBucket(bucket);
+    // Implementazione custom necessaria
+  }
 
   // --- RICERCA AVANZATA ---
   @action

@@ -106,7 +106,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
               ),
               const SizedBox(height: 15),
-            //  MaterialButton(onPressed: onPressed)
               MaterialButton(
                  height: 50,
                  minWidth: 150,
