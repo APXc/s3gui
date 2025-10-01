@@ -117,8 +117,6 @@ Widget contentList(List<Bucket> buckets, BuildContext context) => Expanded(
               },
                 ));
         },
-        separatorBuilder: (context, index) => Divider(
-          height: 2,
-        ),
+        separatorBuilder: (context, index) => SizedBox(height: 8), // Solo spazio tra elementi
       ) : Container(),
     ));
