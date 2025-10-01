@@ -26,12 +26,29 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
+
+  void _refreshState() {
+    setState(() {
+       _s3.listBuckets();
+    });
+   
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Buckets', style: TextStyle(color: Colors.white)),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            color: Colors.white,
+            onPressed: () {
+              _refreshState();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.plus_one),
             tooltip: 'New Bucket',
