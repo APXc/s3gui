@@ -20,3 +20,7 @@ https://user-images.githubusercontent.com/19784933/207382726-636c07dc-ba5c-4a27-
 - Responsive and modern interface
 - Secure credential management via Secure Storage
 - Notifications and operation feedback
+
+## New Demo 
+https://github.com/user-attachments/assets/d0e0558a-f083-4d58-9f8d-e4a43539ff7c
+
