@@ -87,48 +87,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-//   Widget buildTable() {
-//     return DataTable(
-//       columns: const [
-//         DataColumn(
-//           label: Expanded(
-//             child: Text(
-//               'Name',
-//               style: TextStyle(fontSize: 16),
-//             ),
-//           ),
-//         ),
-//       ],
-//       rows: List<DataRow>.generate(
-//           _s3.buckets.length, (index) => buildBucketRow(index)),
-//     );
-//   }
-
-//   DataRow buildBucketRow(int index) {
-//     return DataRow(
-//       cells: [
-//         DataCell(
-//           ListTile(
-//             leading: Icon(Icons.storage, color: Colors.blue[400]),
-//             title: Text(
-//               _s3.buckets[index].name,
-//               style: const TextStyle(fontSize: 16),
-//             ),
-//           ),
-//           onTap: () {
-//             Navigator.push(
-//               context,
-//               MaterialPageRoute(
-//                 builder: (context) => ObjectsPage(
-//                   bucket: _s3.buckets[index].name,
-//                   prefix: '',
-//                 ),
-//               ),
-//             );
-//           },
-//         ),
-//       ],
-//     );
-//   }
 }
