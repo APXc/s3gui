@@ -1,12 +1,17 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:minio/models.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:s3gui/pages/filePreviewPage.dart';
 import 'package:s3gui/utils/utils.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:s3gui/s3.dart';
 import 'package:s3gui/utils/filesize.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ObjectsPage extends StatefulWidget {
   const ObjectsPage({super.key, required this.bucket, required this.prefix});
@@ -47,11 +52,12 @@ class _ObjectsPageState extends State<ObjectsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.bucket),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(widget.bucket, style: const TextStyle(color: Colors.white)),
         actions: [
           PopupMenuButton(
             tooltip: 'New',
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: Colors.white),
             onSelected: (item) async {
               if (item == 1) {
                 await handleFileUpload();
@@ -98,7 +104,7 @@ class _ObjectsPageState extends State<ObjectsPage>
                 stream: _s3.objects,
                 builder: ((_, snapshot) {
                   if (snapshot.hasData) {
-                    return buildTable(snapshot.data!);
+                    return  buildList(snapshot.data!); //buildTable(snapshot.data!);
                   }
                   return Container();
                 }),
@@ -107,147 +113,6 @@ class _ObjectsPageState extends State<ObjectsPage>
           ],
         ),
       ),
-    );
-  }
-
-  Widget buildTable(ListObjectsResult result) {
-    return DataTable(
-      columns: const [
-        DataColumn(
-          label: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Name',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        DataColumn(
-          label: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Size',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        DataColumn(
-          label: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Last Modified',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        DataColumn(
-          label: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-      ],
-      rows: buildRows(result),
-    );
-  }
-
-  List<DataRow> buildRows(ListObjectsResult result) {
-    final prefixRows = List<DataRow>.generate(result.prefixes.length,
-        (index) => buildPrefixRow(result.prefixes[index]));
-    final objects = result.objects.where((object) => object.size! > 0).toList();
-    final objectRows = List<DataRow>.generate(
-        objects.length, (index) => buildObjectRow(objects[index]));
-    return prefixRows + objectRows;
-  }
-
-  DataRow buildPrefixRow(String prefix) {
-    return DataRow(
-      cells: [
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ListTile(
-              leading: Icon(Icons.folder, color: Colors.blue[400]),
-              title: Text(
-                normalizePath(prefix, widget.prefix),
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ObjectsPage(
-                  bucket: widget.bucket,
-                  prefix: prefix,
-                ),
-              ),
-            );
-          },
-        ),
-        const DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '-',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        const DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '-',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        prefixActions(prefix),
-      ],
-    );
-  }
-
-  DataRow buildObjectRow(Object object) {
-    return DataRow(
-      cells: [
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ListTile(
-              leading: Icon(Icons.description, color: Colors.blue[400]),
-              title: Text(
-                normalizePath(object.key!, widget.prefix),
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
-          onTap: () {},
-        ),
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              filesize(object.size!),
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              timeago.format(object.lastModified!),
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        objectActions(object),
-      ],
     );
   }
 
@@ -358,4 +223,178 @@ class _ObjectsPageState extends State<ObjectsPage>
       }
     }
   }
+
+
+  Widget buildList(ListObjectsResult result) {
+  final items = <Widget>[];
+
+  // Directory (prefixes)
+  for (var prefix in result.prefixes) {
+    items.add(ListTile(
+      leading: Icon(Icons.folder, color: Colors.purpleAccent.shade700),
+      title: Text(normalizePath(prefix, widget.prefix)),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ObjectsPage(
+              bucket: widget.bucket,
+              prefix: prefix,
+            ),
+          ),
+        );
+      },
+      trailing: PopupMenuButton(
+        onSelected: (item) async {
+          if (item == 1) {
+            await _s3.deleteDirectory(widget.bucket, widget.prefix, normalizePath(prefix, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(value: 1, child: Text('Delete'),
+           onTap: () async {
+            await _s3.deleteDirectory(widget.bucket, widget.prefix, normalizePath(prefix, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
+           }
+           ),
+        ],
+      ),
+    ));
+  }
+
+  // Files (objects)
+  for (var object in result.objects.where((o) => o.size! > 0)) {
+    items.add(ListTile(
+      leading: Icon(Icons.description, color: Colors.deepPurple),
+      title: Text(normalizePath(object.key!, widget.prefix)),
+      subtitle: Text('${filesize(object.size!)} • ${timeago.format(object.lastModified!)}'),
+      trailing: PopupMenuButton(
+      onSelected: (item) async {
+          if (item == 1) {
+            await _s3.deleteObject(widget.bucket, widget.prefix, normalizePath(object.key!, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
+          } else if (item == 2) {
+            final url = await _s3.getObjectURL(widget.bucket, object.key!);
+            await Clipboard.setData(ClipboardData(text: url));
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(value: 1, child: Text('Delete'), 
+          onTap: () async {
+            await _s3.deleteObject(widget.bucket, widget.prefix, normalizePath(object.key!, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
+          }
+          ),
+          PopupMenuItem(value: 2, child: Text('Copy Download URL'), 
+            onTap: () async {
+              final url = await _s3.getObjectURL(widget.bucket, object.key!);
+              await Clipboard.setData(ClipboardData(text: url));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Download URL copied to clipboard'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          ),
+          PopupMenuItem(value: 3, child: Text('Save As'), onTap: () async {
+            try {
+              if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+                // Per desktop: utilizziamo il percorso fornito dal picker
+                String? outputFile = await FilePicker.platform.saveFile(
+                  dialogTitle: 'Please select an output file:',
+                  fileName: object.key!.split('/').last,
+                );
+
+                if (outputFile != null) {
+                  await _s3.downloadFile(widget.bucket, object.key!, outputFile);
+                }
+              } else {
+                // Per iOS e Android: dobbiamo passare direttamente i bytes al FilePicker
+                final directory = await getApplicationDocumentsDirectory();
+                final fileName = object.key!.split('/').last;
+                final filePath = '${directory.path}/$fileName';
+                
+                await _s3.downloadFile(widget.bucket, object.key!, filePath);
+                
+                // Mostriamo opzioni per condividere il file
+                await Share.shareXFiles(
+                  [XFile(filePath)],
+                  //text: 'File scaricato da S3',
+                );
+              }
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(
+                 backgroundColor: Colors.green,
+                 content: Text(object.key!.split('/').last + ' Success Save file', style: TextStyle(color: Colors.white),),
+                 duration: Duration(seconds: 2),
+               ),
+             );
+          }
+          catch (e) 
+            {
+              print(e);
+                ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                   backgroundColor: Colors.red,
+                  content: Text(object.key!.split('/').last + ' Failed Save file', style: TextStyle(color: Colors.white),),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }  
+          },),
+        ],
+      ),
+      onTap: () async {
+          try {
+            // Mostra indicatore di caricamento
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => Center(child: CircularProgressIndicator()),
+            );
+            
+            if(object.size! > 20 * 1024 * 1024) {
+              throw 'File too large to preview';
+            }
+            // Scarica il file
+            final file = await _s3.downloadObjectToTemp(
+              widget.bucket, 
+              object.key!
+            );
+            
+            // Chiudi indicatore di caricamento
+            Navigator.pop(context);
+            
+            // Apri la pagina di anteprima
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FilePreviewPage(
+                  file: file,
+                  fileName: normalizePath(object.key!, widget.prefix),
+                ),
+              ),
+            );
+          } catch (e) {
+            // Chiudi indicatore di caricamento
+            Navigator.pop(context);
+            
+            // Mostra errore
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Errore nel caricamento: $e'))
+            );
+          }
+      },
+    ));
+  }
+
+  return ListView(
+    shrinkWrap: true,
+    physics: NeverScrollableScrollPhysics(),
+    children: items,
+  );
+}
+
 }

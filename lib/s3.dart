@@ -1,8 +1,12 @@
+import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:minio/minio.dart';
 import 'package:minio/models.dart';
 import 'package:mobx/mobx.dart';
 import 'package:s3gui/client.dart';
+import 'dart:io';
+
 
 part 's3.g.dart';
 
@@ -26,6 +30,13 @@ abstract class S3Base with Store {
   }
 
   @action
+  Future<int> numberObjects(String bucket, String prefix) async {
+    final objects = await Client().c.listAllObjects(bucket, prefix: prefix);
+    return objects.objects.length ?? 0;
+  }
+
+
+  @action
   Future<void> createNewDirectory(
       String bucket, String prefix, String directory) async {
     final path = '$prefix$directory/';
@@ -33,17 +44,16 @@ abstract class S3Base with Store {
   }
 
   @action
-  Future<void> uploadFile(String bucket, String path, PlatformFile file,
-      AnimationController controller) async {
+  Future<void> uploadFile(String bucket, String path, PlatformFile file, AnimationController controller) async {
     controller.value = 1;
     await Client().c.putObject(
-      bucket,
-      path,
-      Stream.value(file.bytes!),
-      onProgress: (bytes) {
-        controller.value = bytes / file.size;
-      },
-    );
+          bucket,
+          path,
+          Stream.value(file.bytes!),
+          onProgress: (bytes) {
+            controller.value = bytes / file.size;
+          },
+        );
   }
 
   @action
@@ -73,5 +83,139 @@ abstract class S3Base with Store {
         await _removeDirectory(bucket, p); // Remove directories
       }
     }
+  }
+
+  @action
+Future<File> downloadObjectToTemp(String bucket, String key) async {
+  final tempDir = await getTemporaryDirectory();
+  final fileName = key.split('/').last;
+  final filePath = '${tempDir.path}/$fileName';
+  final file = File(filePath);
+  
+  if (await file.exists()) {
+    // Se il file esiste già, restituiscilo direttamente
+    return file;
+  }
+  
+  // Crea stream per scaricare il file
+  final stream = await Client().c.getObject(bucket, key);
+  await file.openWrite().addStream(stream);
+  
+  return file;
+}
+
+
+  // // --- DOWNLOAD FILE ---
+  @action
+  Future<String> downloadFile(String bucket, String key, String path) async {
+    // Scarica il file in una cartella temporanea e restituisce il path locale
+    final localPath = '$path';
+    final file = File(localPath);
+    final stream = await Client().c.getObject(bucket, key);
+    final sink = file.openWrite();
+    await for (final chunk in stream) {
+      sink.add(chunk);
+    }
+    await sink.close();
+    return localPath;
+  }
+
+@action
+Future<void> cleanupTempFiles({Duration olderThan = const Duration(days: 1)}) async {
+  final tempDir = await getTemporaryDirectory();
+  final now = DateTime.now();
+  
+  try {
+    final files = tempDir.listSync();
+    for (var fileEntity in files) {
+      if (fileEntity is File) {
+        final fileStat = await fileEntity.stat();
+        final fileAge = now.difference(fileStat.modified);
+        
+        if (fileAge > olderThan) {
+          await fileEntity.delete();
+        }
+      }
+    }
+  } catch (e) {
+    // Log error but don't crash
+    print('Error cleaning temp files: $e');
+  }
+}
+
+  // --- GESTIONE VERSIONI ---
+  // NOTA: Il client Minio Dart non supporta la gestione delle versioni direttamente.
+  // Questi metodi sono stub/documentazione per futura estensione o backend custom.
+  // Future<List<String>> listObjectVersions(String bucket, String key) async {
+  //   // Implementazione custom necessaria
+  // }
+  // Future<void> setObjectVersion(String bucket, String key, String versionId) async {
+  //   // Implementazione custom necessaria
+  // }
+
+  // --- GESTIONE METADATA ---
+  // NOTA: Il client Minio Dart non supporta la gestione dei metadata direttamente.
+  // Questi metodi sono stub/documentazione per futura estensione o backend custom.
+  // Future<Map<String, String>> getObjectMetadata(String bucket, String key) async {
+  //   // Implementazione custom necessaria
+  // }
+  // Future<void> setObjectMetadata(String bucket, String key, Map<String, String> metadata) async {
+  //   // Implementazione custom necessaria
+  // }
+
+  // --- COPIA E SPOSTAMENTO ---
+  @action
+  Future<void> copyObject(String sourceBucket, String sourceKey, String destBucket, String destKey) async {
+    // La copia oggetto Minio richiede CopyConditions come quarto argomento
+    await Client().c.copyObject(destBucket, destKey, sourceBucket, CopyConditions());
+  }
+
+  @action
+  Future<void> moveObject(String sourceBucket, String sourceKey, String destBucket, String destKey) async {
+    await copyObject(sourceBucket, sourceKey, destBucket, destKey);
+    await Client().c.removeObject(sourceBucket, sourceKey);
+  }
+
+  // --- CREAZIONE ED ELIMINAZIONE BUCKET ---
+  // NOTA: Il client Minio Dart non supporta la creazione/eliminazione bucket direttamente.
+  // Questi metodi sono stub/documentazione per futura estensione o backend custom.
+   @action
+  Future<void> createBucket(String bucket) async {
+    MinioInvalidBucketNameError.check(bucket);
+    await Client().c.makeBucket(bucket);
+  }
+
+  @action
+  Future<void> deleteBucket(String bucket) async {
+    await Client().c.removeBucket(bucket);
+    // Implementazione custom necessaria
+  }
+
+  // --- RICERCA AVANZATA ---
+  @action
+  Future<List<Object>> searchObjects(String bucket, {
+    String? prefix,
+    String? nameContains,
+    int? minSize,
+    int? maxSize,
+    DateTime? modifiedAfter,
+    DateTime? modifiedBefore,
+    // Map<String, String>? metadata, // Non supportato
+  }) async {
+    final results = <Object>[];
+    final stream = Client().c.listObjects(bucket, prefix: prefix ?? '');
+    await for (final objResult in stream) {
+      for (final obj in objResult.objects) {
+        bool match = true;
+        if (nameContains != null && !(obj.key?.contains(nameContains) ?? false)) match = false;
+        if (minSize != null && (obj.size ?? 0) < minSize) match = false;
+        if (maxSize != null && (obj.size ?? 0) > maxSize) match = false;
+        if (modifiedAfter != null && (obj.lastModified?.isBefore(modifiedAfter) ?? false)) match = false;
+        if (modifiedBefore != null && (obj.lastModified?.isAfter(modifiedBefore) ?? false)) match = false;
+        // Metadata: non supportato dal client Minio
+        if (match) results.add(obj);
+      }
+    }
+    return results;
   }
 }
