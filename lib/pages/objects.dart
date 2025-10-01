@@ -250,7 +250,12 @@ class _ObjectsPageState extends State<ObjectsPage>
           }
         },
         itemBuilder: (context) => [
-          PopupMenuItem(value: 1, child: Text('Delete')),
+          PopupMenuItem(value: 1, child: Text('Delete'),
+           onTap: () async {
+            await _s3.deleteDirectory(widget.bucket, widget.prefix, normalizePath(prefix, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
+           }
+           ),
         ],
       ),
     ));
@@ -273,11 +278,26 @@ class _ObjectsPageState extends State<ObjectsPage>
           }
         },
         itemBuilder: (context) => [
-          PopupMenuItem(value: 1, child: Text('Delete')),
-          PopupMenuItem(value: 2, child: Text('Copy Download URL')),
+          PopupMenuItem(value: 1, child: Text('Delete'), 
+          onTap: () async {
+            await _s3.deleteObject(widget.bucket, widget.prefix, normalizePath(object.key!, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
+          }
+          ),
+          PopupMenuItem(value: 2, child: Text('Copy Download URL'), 
+            onTap: () async {
+              final url = await _s3.getObjectURL(widget.bucket, object.key!);
+              await Clipboard.setData(ClipboardData(text: url));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Download URL copied to clipboard'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            }
+          ),
           PopupMenuItem(value: 3, child: Text('Save As'), onTap: () async {
             try {
-
               if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
                 // Per desktop: utilizziamo il percorso fornito dal picker
                 String? outputFile = await FilePicker.platform.saveFile(
@@ -287,8 +307,6 @@ class _ObjectsPageState extends State<ObjectsPage>
 
                 if (outputFile != null) {
                   await _s3.downloadFile(widget.bucket, object.key!, outputFile);
-                  // File file = File(outputFile);
-                  // await file.writeAsBytes(bytes);
                 }
               } else {
                 // Per iOS e Android: dobbiamo passare direttamente i bytes al FilePicker
@@ -305,10 +323,24 @@ class _ObjectsPageState extends State<ObjectsPage>
                   await _s3.downloadFile(widget.bucket, object.key!, path);
                 }
               }
+             ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(
+                 backgroundColor: Colors.green,
+                 content: Text(object.key!.split('/').last + ' Success Save file', style: TextStyle(color: Colors.white),),
+                 duration: Duration(seconds: 2),
+               ),
+             );
           }
           catch (e) 
             {
               print(e);
+                ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                   backgroundColor: Colors.red,
+                  content: Text(object.key!.split('/').last + ' Failed Save file', style: TextStyle(color: Colors.white),),
+                  duration: Duration(seconds: 2),
+                ),
+              );
             }  
           },),
         ],
