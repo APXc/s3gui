@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
+import 'package:pdfx/pdfx.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class FilePreviewPage extends StatelessWidget {
   final File file;
@@ -38,12 +38,40 @@ class FilePreviewPage extends StatelessWidget {
     
     switch (extension) {
       case '.pdf':
-        return PDFView(
-          filePath: file.path,
-          enableSwipe: true,
-          autoSpacing: true,
-          pageFling: true,
+        return PdfView(
+          controller: PdfController(
+            document: PdfDocument.openFile(file.path),
+          ),
+          scrollDirection: Axis.vertical,
+          pageSnapping: false, // Consente scroll fluido
+          builders: PdfViewBuilders<DefaultBuilderOptions>(
+            options: const DefaultBuilderOptions(
+              loaderSwitchDuration: Duration(milliseconds: 300),
+            ),
+            documentLoaderBuilder: (_) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            pageLoaderBuilder: (_) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            errorBuilder: (_, error) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
+                  Text('Errore nel caricamento del PDF: $error'),
+                ],
+              ),
+            ),
+          ),
         );
+        // return PDFView(
+        //   filePath: file.path,
+        //   enableSwipe: true,
+        //   autoSpacing: true,
+        //   pageFling: true,
+        // );
       
       case '.jpg':
       case '.jpeg':
@@ -53,12 +81,13 @@ class FilePreviewPage extends StatelessWidget {
           child: Image.file(file),
         );
       
-      // case '.html':
-      //   return WebView(
-      //     initialUrl: 'file://${file.path}',
-      //     javascriptMode: JavascriptMode.unrestricted,
-      //   );
-      
+      case '.html':
+        return WebViewWidget(
+          controller: WebViewController()
+            ..loadFile(file.path)
+            ..setJavaScriptMode(JavaScriptMode.unrestricted),
+        );
+        
       case '.txt':
       case '.csv':
         return FutureBuilder<String>(
