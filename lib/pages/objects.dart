@@ -47,11 +47,12 @@ class _ObjectsPageState extends State<ObjectsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.bucket),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(widget.bucket, style: const TextStyle(color: Colors.white)),
         actions: [
           PopupMenuButton(
             tooltip: 'New',
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: Colors.white),
             onSelected: (item) async {
               if (item == 1) {
                 await handleFileUpload();
@@ -170,7 +171,7 @@ class _ObjectsPageState extends State<ObjectsPage>
           Align(
             alignment: Alignment.centerLeft,
             child: ListTile(
-              leading: Icon(Icons.folder, color: Colors.blue[400]),
+              leading: Icon(Icons.folder, color: Colors.purpleAccent.shade700),
               title: Text(
                 normalizePath(prefix, widget.prefix),
                 style: const TextStyle(fontSize: 16),
@@ -219,7 +220,7 @@ class _ObjectsPageState extends State<ObjectsPage>
           Align(
             alignment: Alignment.centerLeft,
             child: ListTile(
-              leading: Icon(Icons.description, color: Colors.blue[400]),
+              leading: Icon(Icons.description, color: Colors.deepPurple),
               title: Text(
                 normalizePath(object.key!, widget.prefix),
                 style: const TextStyle(fontSize: 16),
