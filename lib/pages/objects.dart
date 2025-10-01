@@ -10,6 +10,8 @@ import 'package:s3gui/utils/utils.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:s3gui/s3.dart';
 import 'package:s3gui/utils/filesize.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ObjectsPage extends StatefulWidget {
   const ObjectsPage({super.key, required this.bucket, required this.prefix});
@@ -310,18 +312,17 @@ class _ObjectsPageState extends State<ObjectsPage>
                 }
               } else {
                 // Per iOS e Android: dobbiamo passare direttamente i bytes al FilePicker
-                String? path = await FilePicker.platform.saveFile(
-                  dialogTitle: 'Save File',
-                  fileName: object.key!.split('/').last,
-                 // bytes: bytes,  // 🔹 Passiamo direttamente i bytes
+                final directory = await getApplicationDocumentsDirectory();
+                final fileName = object.key!.split('/').last;
+                final filePath = '${directory.path}/$fileName';
+                
+                await _s3.downloadFile(widget.bucket, object.key!, filePath);
+                
+                // Mostriamo opzioni per condividere il file
+                await Share.shareXFiles(
+                  [XFile(filePath)],
+                  //text: 'File scaricato da S3',
                 );
-  
-                if (path == null) {
-                  print("User canceled the save dialog.");
-                }
-                else {
-                  await _s3.downloadFile(widget.bucket, object.key!, path);
-                }
               }
              ScaffoldMessenger.of(context).showSnackBar(
                SnackBar(
@@ -354,6 +355,9 @@ class _ObjectsPageState extends State<ObjectsPage>
               builder: (context) => Center(child: CircularProgressIndicator()),
             );
             
+            if(object.size! > 20 * 1024 * 1024) {
+              throw 'File too large to preview';
+            }
             // Scarica il file
             final file = await _s3.downloadObjectToTemp(
               widget.bucket, 

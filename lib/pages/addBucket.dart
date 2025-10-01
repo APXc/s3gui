@@ -27,6 +27,7 @@ class _AddBucketState extends State<AddBucket> {
             child: Padding(
               padding:  const EdgeInsets.only(left: 25, right: 25)
             , child:Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextFormField(
                   controller: bucketNameController,
