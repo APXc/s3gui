@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -273,6 +275,42 @@ class _ObjectsPageState extends State<ObjectsPage>
         itemBuilder: (context) => [
           PopupMenuItem(value: 1, child: Text('Delete')),
           PopupMenuItem(value: 2, child: Text('Copy Download URL')),
+          PopupMenuItem(value: 3, child: Text('Save As'), onTap: () async {
+            try {
+
+              if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+                // Per desktop: utilizziamo il percorso fornito dal picker
+                String? outputFile = await FilePicker.platform.saveFile(
+                  dialogTitle: 'Please select an output file:',
+                  fileName: object.key!.split('/').last,
+                );
+
+                if (outputFile != null) {
+                  await _s3.downloadFile(widget.bucket, object.key!, outputFile);
+                  // File file = File(outputFile);
+                  // await file.writeAsBytes(bytes);
+                }
+              } else {
+                // Per iOS e Android: dobbiamo passare direttamente i bytes al FilePicker
+                String? path = await FilePicker.platform.saveFile(
+                  dialogTitle: 'Save File',
+                  fileName: object.key!.split('/').last,
+                 // bytes: bytes,  // 🔹 Passiamo direttamente i bytes
+                );
+  
+                if (path == null) {
+                  print("User canceled the save dialog.");
+                }
+                else {
+                  await _s3.downloadFile(widget.bucket, object.key!, path);
+                }
+              }
+          }
+          catch (e) 
+            {
+              print(e);
+            }  
+          },),
         ],
       ),
       onTap: () async {

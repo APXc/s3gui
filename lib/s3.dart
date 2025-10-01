@@ -107,10 +107,9 @@ Future<File> downloadObjectToTemp(String bucket, String key) async {
 
   // // --- DOWNLOAD FILE ---
   @action
-  Future<String> downloadFile(String bucket, String key) async {
+  Future<String> downloadFile(String bucket, String key, String path) async {
     // Scarica il file in una cartella temporanea e restituisce il path locale
-    const tempDir = '/tmp';
-    final localPath = '$tempDir/$key';
+    final localPath = '$path';
     final file = File(localPath);
     final stream = await Client().c.getObject(bucket, key);
     final sink = file.openWrite();

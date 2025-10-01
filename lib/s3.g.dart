@@ -125,8 +125,9 @@ mixin _$S3 on S3Base, Store {
       AsyncAction('S3Base.downloadFile', context: context);
 
   @override
-  Future<String> downloadFile(String bucket, String key) {
-    return _$downloadFileAsyncAction.run(() => super.downloadFile(bucket, key));
+  Future<String> downloadFile(String bucket, String key, String path) {
+    return _$downloadFileAsyncAction
+        .run(() => super.downloadFile(bucket, key, path));
   }
 
   late final _$cleanupTempFilesAsyncAction =
