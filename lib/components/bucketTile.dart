@@ -15,8 +15,8 @@ class BucketTile extends StatelessWidget {
       title: Text(bucket.name),
       subtitle: bucket.creationDate != null ? Text(bucket.creationDate.toString()) : Text("") ,
       trailing: Icon(
-        Icons.launch,
-        color: Colors.grey.shade300,
+        Icons.folder,
+        color: Colors.purpleAccent.shade700,
       ),
       leading: AspectRatio(
         aspectRatio: 5 / 3,
