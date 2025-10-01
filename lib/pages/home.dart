@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+//import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:s3gui/pages/settings.dart';
 import 'package:s3gui/pages/addBucket.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:s3gui/pages/objects.dart';
 import 'package:s3gui/client.dart';
 import 'package:s3gui/s3.dart';
+import 'package:s3gui/components/bucketList.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.sharedPreferences});
@@ -79,61 +80,55 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Observer(
-              builder: (_) => buildTable(),
-            )
-          ],
-        ),
+      body: Column(
+        children: [
+         BucketList(buckets: _s3.buckets)
+        ],
       ),
     );
   }
 
-  Widget buildTable() {
-    return DataTable(
-      columns: const [
-        DataColumn(
-          label: Expanded(
-            child: Text(
-              'Name',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-      ],
-      rows: List<DataRow>.generate(
-          _s3.buckets.length, (index) => buildBucketRow(index)),
-    );
-  }
+//   Widget buildTable() {
+//     return DataTable(
+//       columns: const [
+//         DataColumn(
+//           label: Expanded(
+//             child: Text(
+//               'Name',
+//               style: TextStyle(fontSize: 16),
+//             ),
+//           ),
+//         ),
+//       ],
+//       rows: List<DataRow>.generate(
+//           _s3.buckets.length, (index) => buildBucketRow(index)),
+//     );
+//   }
 
-  DataRow buildBucketRow(int index) {
-    return DataRow(
-      cells: [
-        DataCell(
-          ListTile(
-            leading: Icon(Icons.storage, color: Colors.blue[400]),
-            title: Text(
-              _s3.buckets[index].name,
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ObjectsPage(
-                  bucket: _s3.buckets[index].name,
-                  prefix: '',
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
+//   DataRow buildBucketRow(int index) {
+//     return DataRow(
+//       cells: [
+//         DataCell(
+//           ListTile(
+//             leading: Icon(Icons.storage, color: Colors.blue[400]),
+//             title: Text(
+//               _s3.buckets[index].name,
+//               style: const TextStyle(fontSize: 16),
+//             ),
+//           ),
+//           onTap: () {
+//             Navigator.push(
+//               context,
+//               MaterialPageRoute(
+//                 builder: (context) => ObjectsPage(
+//                   bucket: _s3.buckets[index].name,
+//                   prefix: '',
+//                 ),
+//               ),
+//             );
+//           },
+//         ),
+//       ],
+//     );
+//   }
 }

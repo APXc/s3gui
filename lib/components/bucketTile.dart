@@ -3,22 +3,15 @@ import 'package:minio/models.dart';
 class BucketTile extends StatelessWidget {
 
   final Bucket bucket;
-  const BucketTile(this.bucket);
+  final Function onTap;
+  const BucketTile(this.bucket, {required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      onTap: () {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(' Success Send Request'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-
+      onTap: (){
+        onTap();
       },
-      // onTap: () => Navigator.pushNamed(context, EditExpansePage.route,
-      //     arguments: expenseModel),
       title: Text(bucket.name),
       subtitle: bucket.creationDate != null ? Text(bucket.creationDate.toString()) : Text("") ,
       trailing: Icon(
@@ -29,13 +22,13 @@ class BucketTile extends StatelessWidget {
         aspectRatio: 5 / 3,
         child: Container(
           decoration: BoxDecoration(
-              color: Colors.green.shade50,
+              color: Colors.purple.shade50,
               borderRadius: BorderRadius.circular(10)),
           child: Center(
             child: Text(
               bucket.name,
               style: TextStyle(
-                color: Colors.green.shade900,
+                color: Colors.purpleAccent.shade700,
                 fontWeight: FontWeight.bold,
               ),
             ),
