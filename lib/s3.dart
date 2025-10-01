@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:minio/models.dart';
 import 'package:mobx/mobx.dart';
 import 'package:s3gui/client.dart';
+import 'dart:io';
 
 part 's3.g.dart';
 
@@ -33,17 +34,16 @@ abstract class S3Base with Store {
   }
 
   @action
-  Future<void> uploadFile(String bucket, String path, PlatformFile file,
-      AnimationController controller) async {
+  Future<void> uploadFile(String bucket, String path, PlatformFile file, AnimationController controller) async {
     controller.value = 1;
     await Client().c.putObject(
-      bucket,
-      path,
-      Stream.value(file.bytes!),
-      onProgress: (bytes) {
-        controller.value = bytes / file.size;
-      },
-    );
+          bucket,
+          path,
+          Stream.value(file.bytes!),
+          onProgress: (bytes) {
+            controller.value = bytes / file.size;
+          },
+        );
   }
 
   @action
@@ -73,5 +73,103 @@ abstract class S3Base with Store {
         await _removeDirectory(bucket, p); // Remove directories
       }
     }
+  }
+
+  // --- DOWNLOAD FILE ---
+  @action
+  Future<String> downloadFile(String bucket, String key) async {
+    // Scarica il file in una cartella temporanea e restituisce il path locale
+    const tempDir = '/tmp';
+    final localPath = '$tempDir/$key';
+    final file = File(localPath);
+    final stream = await Client().c.getObject(bucket, key);
+    final sink = file.openWrite();
+    await for (final chunk in stream) {
+      sink.add(chunk);
+    }
+    await sink.close();
+    return localPath;
+  }
+
+  // Pulizia file temporanei
+  Future<void> cleanTempFiles() async {
+    const tempDir = '/tmp';
+    final dir = Directory(tempDir);
+    if (await dir.exists()) {
+      await for (final file in dir.list()) {
+        await file.delete();
+      }
+    }
+  }
+
+  // --- GESTIONE VERSIONI ---
+  // NOTA: Il client Minio Dart non supporta la gestione delle versioni direttamente.
+  // Questi metodi sono stub/documentazione per futura estensione o backend custom.
+  // Future<List<String>> listObjectVersions(String bucket, String key) async {
+  //   // Implementazione custom necessaria
+  // }
+  // Future<void> setObjectVersion(String bucket, String key, String versionId) async {
+  //   // Implementazione custom necessaria
+  // }
+
+  // --- GESTIONE METADATA ---
+  // NOTA: Il client Minio Dart non supporta la gestione dei metadata direttamente.
+  // Questi metodi sono stub/documentazione per futura estensione o backend custom.
+  // Future<Map<String, String>> getObjectMetadata(String bucket, String key) async {
+  //   // Implementazione custom necessaria
+  // }
+  // Future<void> setObjectMetadata(String bucket, String key, Map<String, String> metadata) async {
+  //   // Implementazione custom necessaria
+  // }
+
+  // --- COPIA E SPOSTAMENTO ---
+  @action
+  Future<void> copyObject(String sourceBucket, String sourceKey, String destBucket, String destKey) async {
+    // La copia oggetto Minio richiede CopyConditions come quarto argomento
+    await Client().c.copyObject(destBucket, destKey, sourceBucket, CopyConditions());
+  }
+
+  @action
+  Future<void> moveObject(String sourceBucket, String sourceKey, String destBucket, String destKey) async {
+    await copyObject(sourceBucket, sourceKey, destBucket, destKey);
+    await Client().c.removeObject(sourceBucket, sourceKey);
+  }
+
+  // --- CREAZIONE ED ELIMINAZIONE BUCKET ---
+  // NOTA: Il client Minio Dart non supporta la creazione/eliminazione bucket direttamente.
+  // Questi metodi sono stub/documentazione per futura estensione o backend custom.
+  // Future<void> createBucket(String bucket) async {
+  //   // Implementazione custom necessaria
+  // }
+  // Future<void> deleteBucket(String bucket) async {
+  //   // Implementazione custom necessaria
+  // }
+
+  // --- RICERCA AVANZATA ---
+  @action
+  Future<List<Object>> searchObjects(String bucket, {
+    String? prefix,
+    String? nameContains,
+    int? minSize,
+    int? maxSize,
+    DateTime? modifiedAfter,
+    DateTime? modifiedBefore,
+    // Map<String, String>? metadata, // Non supportato
+  }) async {
+    final results = <Object>[];
+    final stream = Client().c.listObjects(bucket, prefix: prefix ?? '');
+    await for (final objResult in stream) {
+      for (final obj in objResult.objects) {
+        bool match = true;
+        if (nameContains != null && !(obj.key?.contains(nameContains) ?? false)) match = false;
+        if (minSize != null && (obj.size ?? 0) < minSize) match = false;
+        if (maxSize != null && (obj.size ?? 0) > maxSize) match = false;
+        if (modifiedAfter != null && (obj.lastModified?.isBefore(modifiedAfter) ?? false)) match = false;
+        if (modifiedBefore != null && (obj.lastModified?.isAfter(modifiedBefore) ?? false)) match = false;
+        // Metadata: non supportato dal client Minio
+        if (match) results.add(obj);
+      }
+    }
+    return results;
   }
 }
