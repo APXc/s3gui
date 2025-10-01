@@ -17,12 +17,14 @@ class _SettingsPageState extends State<SettingsPage> {
   final endpointUrlController = TextEditingController();
   final accessKeyController = TextEditingController();
   final secretKeyController = TextEditingController();
+  final regionTagController = TextEditingController();
 
   @override
   void dispose() {
     endpointUrlController.dispose();
     accessKeyController.dispose();
     secretKeyController.dispose();
+    regionTagController.dispose();
     super.dispose();
   }
 
@@ -34,6 +36,9 @@ class _SettingsPageState extends State<SettingsPage> {
     accessKeyController.text = s3AccessKey ?? '';
     final s3SecretKey = widget.sharedPreferences.getString(s3SecretKeyTag);
     secretKeyController.text = s3SecretKey ?? '';
+    final regionTag = widget.sharedPreferences.getString(s3RegionTag);
+     regionTagController.text = regionTag ?? '';
+
     final navigator = Navigator.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings', style: TextStyle(color: Colors.white))),
@@ -86,6 +91,20 @@ class _SettingsPageState extends State<SettingsPage> {
                   return null;
                 },
               ),
+                const SizedBox(height: 15),
+              TextFormField(
+                controller: regionTagController,
+                decoration: const InputDecoration(
+                  labelText: 'Region',
+                  enabledBorder: UnderlineInputBorder(),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter Secret Key';
+                  }
+                  return null;
+                },
+              ),
               const SizedBox(height: 15),
             //  MaterialButton(onPressed: onPressed)
               MaterialButton(
@@ -105,6 +124,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         .setString(s3AccessKeyTag, accessKeyController.text);
                     await widget.sharedPreferences
                         .setString(s3SecretKeyTag, secretKeyController.text);
+                    await widget.sharedPreferences
+                        .setString(s3RegionTag, regionTagController.text);
                     navigator.pushAndRemoveUntil<void>(
                       MaterialPageRoute<void>(
                           builder: (BuildContext context) => HomePage(

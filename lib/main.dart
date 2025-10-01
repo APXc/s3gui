@@ -22,7 +22,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'S3 GUI',
       theme: ThemeData(
-        fontFamily: 'Balsamiq',
+        fontFamily: 'Roboto',
         appBarTheme: AppBarTheme(color: Colors.deepPurpleAccent.shade700),
         colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.lightBlue),
       ),

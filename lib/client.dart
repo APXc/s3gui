@@ -16,11 +16,14 @@ class Client {
     final endpoint = sharedPreferences.getString(s3EndpointURLTag)!;
     final accessKey = sharedPreferences.getString(s3AccessKeyTag)!;
     final secretKey = sharedPreferences.getString(s3SecretKeyTag)!;
+    final regionTag = sharedPreferences.getString(s3RegionTag)!;
+
     c = Minio(
       endPoint: endpoint,
       accessKey: accessKey,
       secretKey: secretKey,
       useSSL: true,
+      region: regionTag
     );
   }
 }
