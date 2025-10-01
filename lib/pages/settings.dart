@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:s3gui/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:s3gui/const.dart';
+import 'package:s3gui/repository/secureStore.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key, required this.sharedPreferences});
@@ -18,6 +19,13 @@ class _SettingsPageState extends State<SettingsPage> {
   final accessKeyController = TextEditingController();
   final secretKeyController = TextEditingController();
   final regionTagController = TextEditingController();
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStoredValues();
+  }
 
   @override
   void dispose() {
@@ -28,16 +36,60 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
+   Future<void> _loadStoredValues() async {
+    final secureStorage = SecureStorage();
+    
+    // Prima prova a leggere da SecureStorage
+    String? endpoint = await secureStorage.getString(s3EndpointURLTag);
+    String? accessKey = await secureStorage.getString(s3AccessKeyTag);
+    String? secretKey = await secureStorage.getString(s3SecretKeyTag);
+    String? region = await secureStorage.getString(s3RegionTag);
+    
+    // Se non ci sono valori in SecureStorage, prova a leggere da SharedPreferences
+    // Questo è utile per la migrazione da SharedPreferences a SecureStorage
+    if (endpoint == null) {
+      endpoint = widget.sharedPreferences.getString(s3EndpointURLTag);
+      if (endpoint != null) await secureStorage.saveString(s3EndpointURLTag, endpoint);
+    }
+    
+    if (accessKey == null) {
+      accessKey = widget.sharedPreferences.getString(s3AccessKeyTag);
+      if (accessKey != null) await secureStorage.saveString(s3AccessKeyTag, accessKey);
+    }
+    
+    if (secretKey == null) {
+      secretKey = widget.sharedPreferences.getString(s3SecretKeyTag);
+      if (secretKey != null) await secureStorage.saveString(s3SecretKeyTag, secretKey);
+    }
+    
+    if (region == null) {
+      region = widget.sharedPreferences.getString(s3RegionTag);
+      if (region != null) await secureStorage.saveString(s3RegionTag, region);
+    }
+    
+    // Aggiorna i controller
+    if (mounted) {
+      setState(() {
+        endpointUrlController.text = endpoint ?? '';
+        accessKeyController.text = accessKey ?? '';
+        secretKeyController.text = secretKey ?? '';
+        regionTagController.text = region ?? '';
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final s3EndpointURL = widget.sharedPreferences.getString(s3EndpointURLTag);
-    endpointUrlController.text = s3EndpointURL ?? '';
-    final s3AccessKey = widget.sharedPreferences.getString(s3AccessKeyTag);
-    accessKeyController.text = s3AccessKey ?? '';
-    final s3SecretKey = widget.sharedPreferences.getString(s3SecretKeyTag);
-    secretKeyController.text = s3SecretKey ?? '';
-    final regionTag = widget.sharedPreferences.getString(s3RegionTag);
-     regionTagController.text = regionTag ?? '';
+    final secureStorage = SecureStorage();
+    // final s3EndpointURL = widget.sharedPreferences.getString(s3EndpointURLTag);
+    // endpointUrlController.text = s3EndpointURL ?? '';
+    // final s3AccessKey = widget.sharedPreferences.getString(s3AccessKeyTag);
+    // accessKeyController.text = s3AccessKey ?? '';
+    // final s3SecretKey = widget.sharedPreferences.getString(s3SecretKeyTag);
+    // secretKeyController.text = s3SecretKey ?? '';
+    // final regionTag = widget.sharedPreferences.getString(s3RegionTag);
+    //  regionTagController.text = regionTag ?? '';
 
     final navigator = Navigator.of(context);
     return Scaffold(
@@ -45,7 +97,9 @@ class _SettingsPageState extends State<SettingsPage> {
         title: const Text('Settings', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
         ),
-      body: Form(
+      body: 
+      _isLoading ? const Center(child: CircularProgressIndicator()) :
+      Form(
         key: _formKey,
         child: Padding(
           padding: const EdgeInsets.only(left: 25, right: 25),
@@ -120,14 +174,22 @@ class _SettingsPageState extends State<SettingsPage> {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                         content: Text('Saving...'),
                         duration: Duration(seconds: 1)));
-                    await widget.sharedPreferences.setString(
-                        s3EndpointURLTag, endpointUrlController.text);
-                    await widget.sharedPreferences
-                        .setString(s3AccessKeyTag, accessKeyController.text);
-                    await widget.sharedPreferences
-                        .setString(s3SecretKeyTag, secretKeyController.text);
-                    await widget.sharedPreferences
-                        .setString(s3RegionTag, regionTagController.text);
+
+                       // final secureStorage = SecureStorage();
+                    await secureStorage.saveString(s3EndpointURLTag, endpointUrlController.text);
+                    await secureStorage.saveString(s3AccessKeyTag, accessKeyController.text);
+                    await secureStorage.saveString(s3SecretKeyTag, secretKeyController.text);
+                    await secureStorage.saveString(s3RegionTag, regionTagController.text);
+                    // await widget.sharedPreferences.setString(
+                    //     s3EndpointURLTag, endpointUrlController.text);
+                    // await widget.sharedPreferences
+                    //     .setString(s3AccessKeyTag, accessKeyController.text);
+                    // await widget.sharedPreferences
+                    //     .setString(s3SecretKeyTag, secretKeyController.text);
+                    // await widget.sharedPreferences
+                    //     .setString(s3RegionTag, regionTagController.text);
+
+
                     navigator.pushAndRemoveUntil<void>(
                       MaterialPageRoute<void>(
                           builder: (BuildContext context) => HomePage(

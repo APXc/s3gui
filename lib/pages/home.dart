@@ -23,13 +23,32 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    Client().init(widget.sharedPreferences);
-   //_s3.listBuckets();
-    setState(() {
-        _s3.listBuckets();
-       _isLoaded = true;
-    });
+  //   Client().init(widget.sharedPreferences);
+  //  //_s3.listBuckets();
+  //   setState(() {
+  //       _s3.listBuckets();
+  //      _isLoaded = true;
+  //   });
     super.initState();
+    _initApp();
+  }
+
+
+
+  Future<void> _initApp() async {
+    try {
+      await Client().init(widget.sharedPreferences); // IMPORTANTE: attendi init()
+      await _s3.listBuckets(); // Poi carica i bucket
+    } catch (e) {
+      print('Errore di inizializzazione: $e');
+      // Gestione errore (mostra messaggio o retry)
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoaded = true;
+        });
+      }
+    }
   }
 
   Future<void> _refreshState() async {
