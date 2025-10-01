@@ -99,7 +99,7 @@ class _ObjectsPageState extends State<ObjectsPage>
                 stream: _s3.objects,
                 builder: ((_, snapshot) {
                   if (snapshot.hasData) {
-                    return buildTable(snapshot.data!);
+                    return  buildList(snapshot.data!); //buildTable(snapshot.data!);
                   }
                   return Container();
                 }),
@@ -111,146 +111,146 @@ class _ObjectsPageState extends State<ObjectsPage>
     );
   }
 
-  Widget buildTable(ListObjectsResult result) {
-    return DataTable(
-      columns: const [
-        DataColumn(
-          label: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Name',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        DataColumn(
-          label: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Size',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        DataColumn(
-          label: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Last Modified',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        DataColumn(
-          label: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-      ],
-      rows: buildRows(result),
-    );
-  }
+  // Widget buildTable(ListObjectsResult result) {
+  //   return DataTable(
+  //     columns: const [
+  //       DataColumn(
+  //         label: Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             'Name',
+  //             style: TextStyle(fontSize: 16),
+  //           ),
+  //         ),
+  //       ),
+  //       DataColumn(
+  //         label: Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             'Size',
+  //             style: TextStyle(fontSize: 16),
+  //           ),
+  //         ),
+  //       ),
+  //       DataColumn(
+  //         label: Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             'Last Modified',
+  //             style: TextStyle(fontSize: 16),
+  //           ),
+  //         ),
+  //       ),
+  //       DataColumn(
+  //         label: Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             '',
+  //             style: TextStyle(fontSize: 16),
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //     rows: buildRows(result),
+  //   );
+  // }
 
-  List<DataRow> buildRows(ListObjectsResult result) {
-    final prefixRows = List<DataRow>.generate(result.prefixes.length,
-        (index) => buildPrefixRow(result.prefixes[index]));
-    final objects = result.objects.where((object) => object.size! > 0).toList();
-    final objectRows = List<DataRow>.generate(
-        objects.length, (index) => buildObjectRow(objects[index]));
-    return prefixRows + objectRows;
-  }
+  // List<DataRow> buildRows(ListObjectsResult result) {
+  //   final prefixRows = List<DataRow>.generate(result.prefixes.length,
+  //       (index) => buildPrefixRow(result.prefixes[index]));
+  //   final objects = result.objects.where((object) => object.size! > 0).toList();
+  //   final objectRows = List<DataRow>.generate(
+  //       objects.length, (index) => buildObjectRow(objects[index]));
+  //   return prefixRows + objectRows;
+  // }
 
-  DataRow buildPrefixRow(String prefix) {
-    return DataRow(
-      cells: [
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ListTile(
-              leading: Icon(Icons.folder, color: Colors.purpleAccent.shade700),
-              title: Text(
-                normalizePath(prefix, widget.prefix),
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ObjectsPage(
-                  bucket: widget.bucket,
-                  prefix: prefix,
-                ),
-              ),
-            );
-          },
-        ),
-        const DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '-',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        const DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '-',
-              style: TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        prefixActions(prefix),
-      ],
-    );
-  }
+  // DataRow buildPrefixRow(String prefix) {
+  //   return DataRow(
+  //     cells: [
+  //       DataCell(
+  //         Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: ListTile(
+  //             leading: Icon(Icons.folder, color: Colors.purpleAccent.shade700),
+  //             title: Text(
+  //               normalizePath(prefix, widget.prefix),
+  //               style: const TextStyle(fontSize: 16),
+  //             ),
+  //           ),
+  //         ),
+  //         onTap: () {
+  //           Navigator.push(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) => ObjectsPage(
+  //                 bucket: widget.bucket,
+  //                 prefix: prefix,
+  //               ),
+  //             ),
+  //           );
+  //         },
+  //       ),
+  //       const DataCell(
+  //         Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             '-',
+  //             style: TextStyle(fontSize: 16),
+  //           ),
+  //         ),
+  //       ),
+  //       const DataCell(
+  //         Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             '-',
+  //             style: TextStyle(fontSize: 16),
+  //           ),
+  //         ),
+  //       ),
+  //       prefixActions(prefix),
+  //     ],
+  //   );
+  // }
 
-  DataRow buildObjectRow(Object object) {
-    return DataRow(
-      cells: [
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: ListTile(
-              leading: Icon(Icons.description, color: Colors.deepPurple),
-              title: Text(
-                normalizePath(object.key!, widget.prefix),
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
-          onTap: () {},
-        ),
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              filesize(object.size!),
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        DataCell(
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              timeago.format(object.lastModified!),
-              style: const TextStyle(fontSize: 16),
-            ),
-          ),
-        ),
-        objectActions(object),
-      ],
-    );
-  }
+  // DataRow buildObjectRow(Object object) {
+  //   return DataRow(
+  //     cells: [
+  //       DataCell(
+  //         Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: ListTile(
+  //             leading: Icon(Icons.description, color: Colors.deepPurple),
+  //             title: Text(
+  //               normalizePath(object.key!, widget.prefix),
+  //               style: const TextStyle(fontSize: 16),
+  //             ),
+  //           ),
+  //         ),
+  //         onTap: () {},
+  //       ),
+  //       DataCell(
+  //         Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             filesize(object.size!),
+  //             style: const TextStyle(fontSize: 16),
+  //           ),
+  //         ),
+  //       ),
+  //       DataCell(
+  //         Align(
+  //           alignment: Alignment.centerLeft,
+  //           child: Text(
+  //             timeago.format(object.lastModified!),
+  //             style: const TextStyle(fontSize: 16),
+  //           ),
+  //         ),
+  //       ),
+  //       objectActions(object),
+  //     ],
+  //   );
+  // }
 
   Widget showCreateDirectoryDialog() {
     return AlertDialog(
@@ -359,4 +359,70 @@ class _ObjectsPageState extends State<ObjectsPage>
       }
     }
   }
+
+
+  Widget buildList(ListObjectsResult result) {
+  final items = <Widget>[];
+
+  // Directory (prefixes)
+  for (var prefix in result.prefixes) {
+    items.add(ListTile(
+      leading: Icon(Icons.folder, color: Colors.purpleAccent.shade700),
+      title: Text(normalizePath(prefix, widget.prefix)),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ObjectsPage(
+              bucket: widget.bucket,
+              prefix: prefix,
+            ),
+          ),
+        );
+      },
+      trailing: PopupMenuButton(
+        onSelected: (item) async {
+          if (item == 1) {
+            await _s3.deleteDirectory(widget.bucket, widget.prefix, normalizePath(prefix, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(value: 1, child: Text('Delete')),
+        ],
+      ),
+    ));
+  }
+
+  // Files (objects)
+  for (var object in result.objects.where((o) => o.size! > 0)) {
+    items.add(ListTile(
+      leading: Icon(Icons.description, color: Colors.deepPurple),
+      title: Text(normalizePath(object.key!, widget.prefix)),
+      subtitle: Text('${filesize(object.size!)} • ${timeago.format(object.lastModified!)}'),
+      trailing: PopupMenuButton(
+        onSelected: (item) async {
+          if (item == 1) {
+            await _s3.deleteObject(widget.bucket, widget.prefix, normalizePath(object.key!, widget.prefix));
+            await _s3.listObjects(widget.bucket, widget.prefix);
+          } else if (item == 2) {
+            final url = await _s3.getObjectURL(widget.bucket, object.key!);
+            await Clipboard.setData(ClipboardData(text: url));
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(value: 1, child: Text('Delete')),
+          PopupMenuItem(value: 2, child: Text('Copy Download URL')),
+        ],
+      ),
+    ));
+  }
+
+  return ListView(
+    shrinkWrap: true,
+    physics: NeverScrollableScrollPhysics(),
+    children: items,
+  );
+}
+
 }
