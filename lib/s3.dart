@@ -28,6 +28,13 @@ abstract class S3Base with Store {
   }
 
   @action
+  Future<int> numberObjects(String bucket, String prefix) async {
+    final objects = await Client().c.listAllObjects(bucket, prefix: prefix);
+    return objects.objects.length ?? 0;
+  }
+
+
+  @action
   Future<void> createNewDirectory(
       String bucket, String prefix, String directory) async {
     final path = '$prefix$directory/';
