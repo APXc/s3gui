@@ -19,7 +19,7 @@ class FilePreviewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(fileName),
+        title: Text(fileName, style: const TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
@@ -112,7 +112,12 @@ class FilePreviewPage extends StatelessWidget {
               SizedBox(height: 16),
               Text('Anteprima non disponibile per questo tipo di file'),
               SizedBox(height: 24),
-              ElevatedButton(
+              MaterialButton(
+                height: 50,
+                minWidth: 150,
+                color: Colors.deepPurpleAccent.shade700,
+                textColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
                 onPressed: () => OpenFile.open(file.path),
                 child: Text('Apri con app predefinita'),
               )

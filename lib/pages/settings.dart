@@ -41,7 +41,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
     final navigator = Navigator.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings', style: TextStyle(color: Colors.white))),
+      appBar: AppBar(
+        title: const Text('Settings', style: TextStyle(color: Colors.white)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        ),
       body: Form(
         key: _formKey,
         child: Padding(
