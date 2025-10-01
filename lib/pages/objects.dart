@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:minio/models.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:s3gui/pages/filePreviewPage.dart';
 import 'package:s3gui/utils/utils.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:s3gui/s3.dart';
@@ -260,7 +261,7 @@ class _ObjectsPageState extends State<ObjectsPage>
       title: Text(normalizePath(object.key!, widget.prefix)),
       subtitle: Text('${filesize(object.size!)} • ${timeago.format(object.lastModified!)}'),
       trailing: PopupMenuButton(
-        onSelected: (item) async {
+      onSelected: (item) async {
           if (item == 1) {
             await _s3.deleteObject(widget.bucket, widget.prefix, normalizePath(object.key!, widget.prefix));
             await _s3.listObjects(widget.bucket, widget.prefix);
@@ -274,6 +275,44 @@ class _ObjectsPageState extends State<ObjectsPage>
           PopupMenuItem(value: 2, child: Text('Copy Download URL')),
         ],
       ),
+      onTap: () async {
+          try {
+            // Mostra indicatore di caricamento
+            showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => Center(child: CircularProgressIndicator()),
+            );
+            
+            // Scarica il file
+            final file = await _s3.downloadObjectToTemp(
+              widget.bucket, 
+              object.key!
+            );
+            
+            // Chiudi indicatore di caricamento
+            Navigator.pop(context);
+            
+            // Apri la pagina di anteprima
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FilePreviewPage(
+                  file: file,
+                  fileName: normalizePath(object.key!, widget.prefix),
+                ),
+              ),
+            );
+          } catch (e) {
+            // Chiudi indicatore di caricamento
+            Navigator.pop(context);
+            
+            // Mostra errore
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Errore nel caricamento: $e'))
+            );
+          }
+      },
     ));
   }
 

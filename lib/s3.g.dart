@@ -112,12 +112,31 @@ mixin _$S3 on S3Base, Store {
         .run(() => super.deleteDirectory(bucket, prefix, key));
   }
 
+  late final _$downloadObjectToTempAsyncAction =
+      AsyncAction('S3Base.downloadObjectToTemp', context: context);
+
+  @override
+  Future<File> downloadObjectToTemp(String bucket, String key) {
+    return _$downloadObjectToTempAsyncAction
+        .run(() => super.downloadObjectToTemp(bucket, key));
+  }
+
   late final _$downloadFileAsyncAction =
       AsyncAction('S3Base.downloadFile', context: context);
 
   @override
   Future<String> downloadFile(String bucket, String key) {
     return _$downloadFileAsyncAction.run(() => super.downloadFile(bucket, key));
+  }
+
+  late final _$cleanupTempFilesAsyncAction =
+      AsyncAction('S3Base.cleanupTempFiles', context: context);
+
+  @override
+  Future<void> cleanupTempFiles(
+      {Duration olderThan = const Duration(days: 1)}) {
+    return _$cleanupTempFilesAsyncAction
+        .run(() => super.cleanupTempFiles(olderThan: olderThan));
   }
 
   late final _$copyObjectAsyncAction =

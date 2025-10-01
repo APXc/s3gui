@@ -1,3 +1,4 @@
+import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:minio/minio.dart';
@@ -5,6 +6,7 @@ import 'package:minio/models.dart';
 import 'package:mobx/mobx.dart';
 import 'package:s3gui/client.dart';
 import 'dart:io';
+
 
 part 's3.g.dart';
 
@@ -83,7 +85,27 @@ abstract class S3Base with Store {
     }
   }
 
-  // --- DOWNLOAD FILE ---
+  @action
+Future<File> downloadObjectToTemp(String bucket, String key) async {
+  final tempDir = await getTemporaryDirectory();
+  final fileName = key.split('/').last;
+  final filePath = '${tempDir.path}/$fileName';
+  final file = File(filePath);
+  
+  if (await file.exists()) {
+    // Se il file esiste già, restituiscilo direttamente
+    return file;
+  }
+  
+  // Crea stream per scaricare il file
+  final stream = await Client().c.getObject(bucket, key);
+  await file.openWrite().addStream(stream);
+  
+  return file;
+}
+
+
+  // // --- DOWNLOAD FILE ---
   @action
   Future<String> downloadFile(String bucket, String key) async {
     // Scarica il file in una cartella temporanea e restituisce il path locale
@@ -99,16 +121,28 @@ abstract class S3Base with Store {
     return localPath;
   }
 
-  // Pulizia file temporanei
-  Future<void> cleanTempFiles() async {
-    const tempDir = '/tmp';
-    final dir = Directory(tempDir);
-    if (await dir.exists()) {
-      await for (final file in dir.list()) {
-        await file.delete();
+@action
+Future<void> cleanupTempFiles({Duration olderThan = const Duration(days: 1)}) async {
+  final tempDir = await getTemporaryDirectory();
+  final now = DateTime.now();
+  
+  try {
+    final files = tempDir.listSync();
+    for (var fileEntity in files) {
+      if (fileEntity is File) {
+        final fileStat = await fileEntity.stat();
+        final fileAge = now.difference(fileStat.modified);
+        
+        if (fileAge > olderThan) {
+          await fileEntity.delete();
+        }
       }
     }
+  } catch (e) {
+    // Log error but don't crash
+    print('Error cleaning temp files: $e');
   }
+}
 
   // --- GESTIONE VERSIONI ---
   // NOTA: Il client Minio Dart non supporta la gestione delle versioni direttamente.
