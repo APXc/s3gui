@@ -3,7 +3,7 @@ description: S3 GUI for desktop and mobile.
 
 publish_to: 'none'
 
-version: 0.1.0+1
+version: 0.3.0
 
 environment:
   sdk: '>=2.18.5 <3.0.0'
@@ -28,6 +28,7 @@ dependencies:
   pdfx: ^2.9.2
   share_plus: ^7.2.1
   flutter_secure_storage: ^9.2.4
+  icons_launcher: ^3.0.3
 
 dev_dependencies:
   flutter_test:
@@ -47,3 +48,27 @@ flutter:
     - family: Balsamiq
       fonts:
         - asset: assets/fonts/Balsamiq-Sans.ttf
+
+
+icons_launcher:
+  image_path: 'assets/ic_raw.png'
+  platforms:
+    android:
+      enable: true
+      image_path: 'assets/playstore.png'
+      notification_image: "assets/playstore.png"
+      # adaptive_background_color: '#ffffff'
+      adaptive_background_image: 'assets/playstore.png'
+      adaptive_foreground_image: 'assets/playstore.png'
+      adaptive_round_image: 'assets/playstore.png'
+      adaptive_monochrome_image: 'assets/playstore.png'
+    web:
+      enable: true
+      image_path: 'assets/ic_raw.png'
+      favicon_path: 'assets/ic_raw.png'
+    macos:
+      enable: false
+      image_path: 'assets/ic_raw.png'
+    linux:
+      enable: true
+      image_path: 'assets/ic_raw.png'
