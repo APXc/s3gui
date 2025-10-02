@@ -81,7 +81,8 @@ jobs:
           channel: 'stable'
       - run: flutter config --enable-macos-desktop
       - run: flutter pub get
-      - run: flutter build macos --release --no-codesign
+      - run: flutter build macos --release
+      - run: xcodebuild -workspace macos/Runner.xcworkspace -scheme Runner -configuration Release -allowProvisioningUpdates
       # Installa create-dmg
       - run: brew install create-dmg
       # Crea il file DMG
