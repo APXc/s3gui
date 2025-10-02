@@ -19,11 +19,11 @@ jobs:
       - run: flutter pub get
       - run: flutter build apk --release
       - run: flutter build appbundle --release
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: build/app/outputs/flutter-apk/app-release.apk
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: android-aab
           path: build/app/outputs/bundle/release/app.aab
@@ -46,11 +46,11 @@ jobs:
           cp build/linux/x64/release/bundle/* dist/usr/local/bin/
           mkdir -p dist/DEBIAN
           echo "Package: s3gui Version: 1.0.0 Section: base Priority: optional Architecture: amd64 Depends: libgtk-3-0 Maintainer: Your Name <your@email.com> Description: S3 GUI client built with Flutter." > dist/DEBIAN/control Maintainer: APXC"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-deb
           path: s3gui.deb
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-x64
           path: build/linux/x64/release/bundle/
@@ -66,7 +66,7 @@ jobs:
       - run: flutter config --enable-windows-desktop
       - run: flutter pub get
       - run: flutter build windows --release
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: windows-x64
           path: build/windows/runner/Release/
@@ -88,11 +88,11 @@ jobs:
       - name: Create DMG
         run: |
           create-dmg s3gui.dmg build/macos/Build/Products/Release/Runner.app
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: macos-dmg
           path: s3gui.dmg
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: macos-x64
           path: build/macos/Build/Products/Release/Runner.app
