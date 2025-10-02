@@ -43,7 +43,7 @@ jobs:
       - name: Create DEB package
         run: |
           mkdir -p dist/usr/local/bin
-          cp build/linux/x64/release/bundle/* dist/usr/local/bin/
+          cp -r build/linux/x64/release/bundle/* dist/usr/local/bin/
           mkdir -p dist/DEBIAN
           echo "Package: s3gui Version: 1.0.0 Section: base Priority: optional Architecture: amd64 Depends: libgtk-3-0 Maintainer: Your Name <your@email.com> Description: S3 GUI client built with Flutter." > dist/DEBIAN/control Maintainer: APXC"
       - uses: actions/upload-artifact@v4
