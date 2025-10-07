@@ -67,7 +67,7 @@ jobs:
       - run: flutter pub get
       - run: flutter build windows --release
       - name: Create ZIP
-        run: Compress-Archive -Path build/windows/runner/Release/* -DestinationPath s3gui-windows.zip
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath s3gui-windows.zip
       
       - uses: actions/upload-artifact@v4
         with:
